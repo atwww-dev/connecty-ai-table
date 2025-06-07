@@ -248,43 +248,38 @@
     @media (max-width: 900px) {
       .comparison-container-${instanceId} {
         padding: 1rem;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
       }
       .comparison-container-${instanceId} .table-header,
       .comparison-container-${instanceId} .feature-row,
       .comparison-container-${instanceId} .feature-description-row {
         grid-template-columns: 30px 1.5fr 1fr 1fr 1fr;
         font-size: 0.95em;
+        min-width: 600px;
       }
       .comparison-container-${instanceId} .feature-name,
       .comparison-container-${instanceId} .feature-value,
       .comparison-container-${instanceId} .feature-description-cell {
         padding: 0 0.5rem;
       }
+      .comparison-container-${instanceId} .key-takeaways {
+        min-width: 600px;
+      }
     }
 
     @media (max-width: 600px) {
       .comparison-container-${instanceId} {
-        overflow-x: auto !important;
-        position: relative !important;
         padding: 0.5rem;
         width: 100%;
         max-width: 100vw;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
       }
-      .comparison-container-${instanceId} > .table-header,
-      .comparison-container-${instanceId} > .feature-row,
-      .comparison-container-${instanceId} > .feature-description-row {
-        min-width: 520px !important;
-        width: 520px !important;
-      }
-      .comparison-container-${instanceId}::after {
-        content: '';
-        position: absolute;
-        top: 0; right: 0; bottom: 0;
-        width: 24px;
-        pointer-events: none;
-        background: linear-gradient(to left, #06001a 80%, transparent);
-        z-index: 2;
-        display: block;
+      .comparison-container-${instanceId} .table-header,
+      .comparison-container-${instanceId} .feature-row,
+      .comparison-container-${instanceId} .feature-description-row {
+        min-width: 600px;
       }
       .comparison-container-${instanceId} .feature-name,
       .comparison-container-${instanceId} .feature-value,
@@ -292,6 +287,7 @@
         padding: 0 0.25rem;
       }
       .comparison-container-${instanceId} .key-takeaways {
+        min-width: 600px;
         padding: 1rem;
       }
       .comparison-container-${instanceId} .takeaways-title {
@@ -309,12 +305,18 @@
 
     @media (max-width: 480px) {
       .comparison-container-${instanceId} {
-        /* overflow-x: auto; already set above */
+        padding: 0.25rem;
       }
       .comparison-container-${instanceId} .table-header,
       .comparison-container-${instanceId} .feature-row,
       .comparison-container-${instanceId} .feature-description-row {
-        min-width: 520px;
+        min-width: 600px;
+      }
+      .comparison-container-${instanceId} .category-header {
+        min-width: 600px;
+      }
+      .comparison-container-${instanceId} .key-takeaways {
+        min-width: 600px;
       }
     }
     `;

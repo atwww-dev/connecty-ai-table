@@ -3,23 +3,231 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Comparison Table Test</title>
+    <title>Comparison Table Demo</title>
     <!-- Add Roboto font -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet">
     <style>
         body {
             margin: 0;
             padding: 20px;
-            background-color: #000;
+            background-color: #121212;
             min-height: 100vh;
+            color: #eee;
+            font-family: 'Roboto', sans-serif;
+        }
+        h1, h2 {
+            color: #fff;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .demo-section {
+            margin-bottom: 60px;
+        }
+        code {
+            background: #333;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-size: 0.9em;
+        }
+        .spacer {
+            height: 40px;
         }
     </style>
 </head>
 <body>
-    <!-- Container for the comparison table -->
-    <div id="comparison-table"></div>
+    <div class="container">
+        <h1>Connecty AI Table Comparison Library Demo</h1>
+        
+        <!-- Demo 1: Basic Table -->
+        <div class="demo-section">
+            <h2>Demo 1: Basic Table with Automatic Initialization</h2>
+            <p>This table uses the global window.comparisonData object and automatic initialization.</p>
+            <div id="demo1" data-comparison></div>
+        </div>
+        
+        <div class="spacer"></div>
+        
+        <!-- Demo 2: Manual Initialization -->
+        <div class="demo-section">
+            <h2>Demo 2: Manual Initialization with Different Data</h2>
+            <p>This table is manually initialized with different data.</p>
+            <div id="demo2"></div>
+        </div>
+        
+        <div class="spacer"></div>
+        
+        <!-- Demo 3: Multiple Tables -->
+        <div class="demo-section">
+            <h2>Demo 3: Multiple Tables in CMS-like Environment</h2>
+            <p>These tables demonstrate how to use multiple tables in a CMS environment.</p>
+            
+            <!-- Simulated CMS Item 1 -->
+            <div style="margin-bottom: 30px; padding: 20px; background: #1e1e1e; border-radius: 5px;">
+                <h3>CMS Item 1: Database Comparison</h3>
+                <div id="cms-item1" data-comparison></div>
+            </div>
+            
+            <!-- Simulated CMS Item 2 -->
+            <div style="margin-bottom: 30px; padding: 20px; background: #1e1e1e; border-radius: 5px;">
+                <h3>CMS Item 2: Cloud Provider Comparison</h3>
+                <div id="cms-item2" data-comparison></div>
+            </div>
+        </div>
+    </div>
 
-    <!-- Include the comparison table script -->
+    <!-- Sample Data for Demo 1 -->
+    <script>
+        // Global data for auto-initialization
+        window.comparisonData = {
+            headers: ["Connecty AI", "Databricks AI BI Genie", "Databricks Unity Catalog"],
+            categories: [
+                {
+                    name: "Features Category 1",
+                    features: [
+                        {
+                            name: "Feature 1",
+                            connectyAI: { type: "check" },
+                            competition1: "close",
+                            competition2: "close",
+                            descriptions: {
+                                connectyAI: "Connecty AI has this feature and it's great.",
+                                competition1: "Competitor 1 doesn't have this feature.",
+                                competition2: "Competitor 2 doesn't have this feature."
+                            },
+                            tooltip: "This is a tooltip explaining Feature 1"
+                        },
+                        {
+                            name: "Feature 2",
+                            connectyAI: { type: "check" },
+                            competition1: { type: "warning", text: "Limited" },
+                            competition2: "close",
+                            descriptions: {
+                                connectyAI: "Connecty AI has this feature fully implemented.",
+                                competition1: "Competitor 1 has limited implementation.",
+                                competition2: "Competitor 2 doesn't have this feature."
+                            },
+                            tooltip: "This is a tooltip explaining Feature 2"
+                        }
+                    ],
+                    keyTakeaways: [
+                        "Connecty AI provides superior features in category 1",
+                        "Competitors lack full implementation of key features"
+                    ]
+                }
+            ]
+        };
+    </script>
+
+    <!-- Include the library -->
     <script src="comparison.js"></script>
+    
+    <!-- Demo 2: Manual initialization -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Data for Demo 2
+            const demo2Data = {
+                headers: ["Product A", "Product B", "Product C"],
+                categories: [
+                    {
+                        name: "Alternative Category",
+                        features: [
+                            {
+                                name: "Speed",
+                                connectyAI: { type: "check", text: "Fast" },
+                                competition1: { type: "warning", text: "Medium" },
+                                competition2: { type: "check", text: "Fast" },
+                                descriptions: {
+                                    connectyAI: "Product A is very fast.",
+                                    competition1: "Product B is moderately fast.",
+                                    competition2: "Product C is very fast."
+                                },
+                                tooltip: "How quickly the product responds"
+                            },
+                            {
+                                name: "Price",
+                                connectyAI: { type: "check", text: "$10/mo" },
+                                competition1: { type: "warning", text: "$25/mo" },
+                                competition2: { type: "close", text: "$50/mo" },
+                                descriptions: {
+                                    connectyAI: "Product A is the most affordable.",
+                                    competition1: "Product B is mid-range pricing.",
+                                    competition2: "Product C is the most expensive."
+                                },
+                                tooltip: "Monthly subscription cost"
+                            }
+                        ],
+                        keyTakeaways: [
+                            "Product A offers the best value for money",
+                            "Product C is overpriced compared to alternatives"
+                        ]
+                    }
+                ]
+            };
+            
+            // Initialize Demo 2
+            new ComparisonTable(demo2Data, "demo2");
+            
+            // Data for CMS Item 1
+            const cmsItem1Data = {
+                headers: ["MySQL", "PostgreSQL", "MongoDB"],
+                categories: [
+                    {
+                        name: "Database Features",
+                        features: [
+                            {
+                                name: "SQL Support",
+                                connectyAI: { type: "check" },
+                                competition1: { type: "check" },
+                                competition2: { type: "close" },
+                                descriptions: {
+                                    connectyAI: "Full SQL support",
+                                    competition1: "Full SQL support with extensions",
+                                    competition2: "No SQL, uses MongoDB Query Language"
+                                }
+                            }
+                        ],
+                        keyTakeaways: [
+                            "SQL databases offer traditional relational data models",
+                            "MongoDB is better for document-oriented data"
+                        ]
+                    }
+                ]
+            };
+            
+            // Data for CMS Item 2
+            const cmsItem2Data = {
+                headers: ["AWS", "Azure", "Google Cloud"],
+                categories: [
+                    {
+                        name: "Cloud Services",
+                        features: [
+                            {
+                                name: "Global Presence",
+                                connectyAI: { type: "check", text: "25+ regions" },
+                                competition1: { type: "check", text: "60+ regions" },
+                                competition2: { type: "warning", text: "20+ regions" },
+                                descriptions: {
+                                    connectyAI: "AWS has a strong global presence",
+                                    competition1: "Azure has the most regions",
+                                    competition2: "Google Cloud has fewer regions but growing"
+                                }
+                            }
+                        ],
+                        keyTakeaways: [
+                            "Azure leads in geographical coverage",
+                            "All providers continue expanding their global footprint"
+                        ]
+                    }
+                ]
+            };
+            
+            // Initialize CMS tables
+            new ComparisonTable(cmsItem1Data, "cms-item1");
+            new ComparisonTable(cmsItem2Data, "cms-item2");
+        });
+    </script>
 </body>
 </html> 

@@ -397,7 +397,7 @@
       nameCell.className = "feature-name";
 
       // Create H2 for feature name
-      const featureTitle = document.createElement("h2");
+      const featureTitle = document.createElement("div");
       featureTitle.textContent = feature.name;
       nameCell.appendChild(featureTitle);
 
@@ -540,7 +540,7 @@
       const header = document.createElement("div");
       header.className = "category-header";
 
-      const title = document.createElement("div");
+      const title = document.createElement("h2");
       title.className = "category-title";
       title.textContent = category.name;
 

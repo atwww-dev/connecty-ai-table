@@ -16,6 +16,10 @@
       grid-template-columns: 40px 1fr repeat(3, 1fr);
       border-bottom: 1px solid #efeaff1a;
       padding: 1rem 0;
+      position: sticky;
+      top: 0;
+      background-color: #06001a;
+      z-index: 10;
     }
 
     .comparison-container-${instanceId} .header-cell {
@@ -132,6 +136,7 @@
     .comparison-container-${instanceId} .feature-value {
       display: flex;
       align-items: center;
+      justify-content: center;
       padding: 0 1rem;
       border-right: 1px solid #efeaff1a;
       background: transparent;
@@ -167,7 +172,7 @@
     }
 
     .comparison-container-${instanceId} .tooltip {
-      position: absolute;
+      position: fixed;
       background: #010007b2;
       border: 1px solid #efeaff1a;
       border-radius: 10px;
@@ -175,13 +180,11 @@
       width: 250px;
       color: #efeaff;
       font-size: 0.875rem;
-      z-index: 100;
+      z-index: 1000;
       display: none;
       backdrop-filter: blur(5px);
-      left: 110%;
-      top: 50%;
-      transform: translateY(-50%);
       box-shadow: 0 2px 8px #0003;
+      pointer-events: none;
     }
     .comparison-container-${instanceId} .tooltip.visible {
       display: block;
@@ -413,8 +416,24 @@
         const tooltip = this.createTooltip(feature.tooltip);
         helpIcon.appendChild(tooltip);
         nameCell.appendChild(helpIcon);
-        // Only toggle visibility, let CSS handle positioning
-        helpIcon.addEventListener("mouseenter", () => {
+        // Dynamic positioning and toggle visibility
+        helpIcon.addEventListener("mouseenter", (e) => {
+          const rect = helpIcon.getBoundingClientRect();
+          const tooltipWidth = 250;
+          const spacing = 10;
+
+          // Position to the right of the icon, but check if it fits in viewport
+          let left = rect.right + spacing;
+          if (left + tooltipWidth > window.innerWidth) {
+            // Position to the left if no space on the right
+            left = rect.left - tooltipWidth - spacing;
+          }
+
+          // Center vertically relative to the icon
+          const top = rect.top + rect.height / 2 - tooltip.offsetHeight / 2;
+
+          tooltip.style.left = `${Math.max(spacing, left)}px`;
+          tooltip.style.top = `${Math.max(spacing, top)}px`;
           tooltip.classList.add("visible");
         });
         helpIcon.addEventListener("mouseleave", () => {
@@ -514,13 +533,13 @@
       return container;
     }
 
-    createKeyTakeaways(takeaways) {
+    createKeyTakeaways(takeaways, customTitle) {
       const section = document.createElement("div");
       section.className = "key-takeaways";
 
       const title = document.createElement("h3");
       title.className = "takeaways-title";
-      title.textContent = "Key takeaways:";
+      title.textContent = customTitle || "Key takeaways";
       section.appendChild(title);
 
       const list = document.createElement("ul");
@@ -577,7 +596,12 @@
         featureContainers.forEach((container) => container.toggleRow(expand));
       });
 
-      section.appendChild(this.createKeyTakeaways(category.keyTakeaways));
+      section.appendChild(
+        this.createKeyTakeaways(
+          category.keyTakeaways,
+          category.keyTakeawaysTitle
+        )
+      );
       return section;
     }
 

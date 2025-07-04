@@ -90,6 +90,7 @@ const comparisonData = {
             "Pre-built secure connections to leading cloud and on-prem warehouses for seamless data access.",
         },
       ],
+      keyTakeawaysTitle: "Why Choose Connecty AI", // Optional: defaults to "Key takeaways" if not specified
       keyTakeaways: [
         "Connecty AI delivers time-to-value with truly plug-and-play deployment and auto-discovery of raw data schemas, eliminating manual space setup and sample prompt creation.",
         "Automated data profiling, cleaning, and semantic modeling reduce ongoing maintenance overhead, so business users can start querying without hand-curating tables or wiring pipelines.",
@@ -135,6 +136,7 @@ const comparisonData = {
             "A graphical view you can explore to see tables, relationships, and metrics.",
         },
       ],
+      keyTakeawaysTitle: "Semantic Layer Benefits", // Custom title for this category
       keyTakeaways: [
         "Connecty AI removes the need for manual semantic modeling by auto-building and maintaining your metrics, joins, and definitions on the fly.",
         "Its dynamic context graph continuously adapts to schema or data changes, so your semantic layer stays current without extra work.",

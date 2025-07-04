@@ -140,9 +140,20 @@ const comparisonData = {
         },
         // More features...
       ],
+      keyTakeawaysTitle: "Why Choose Product A", // Optional: Custom title for this section
       keyTakeaways: [
         "Key takeaway 1 for this category",
         "Key takeaway 2 for this category"
+      ]
+    },
+    {
+      name: "Category 2",
+      features: [
+        // More features...
+      ],
+      // No keyTakeawaysTitle specified - will default to "Key takeaways"
+      keyTakeaways: [
+        "Another takeaway for category 2"
       ]
     },
     // More categories...
@@ -155,6 +166,33 @@ const comparisonData = {
 - `check` - Shows a checkmark (positive)
 - `warning` - Shows a warning triangle (partial)
 - `close` - Shows an X (negative)
+
+## Key Takeaways Section
+
+Each category can have a customizable title for its key takeaways section:
+
+```javascript
+{
+  name: "Your Category",
+  features: [...],
+  keyTakeawaysTitle: "Why Choose Our Product", // Custom title
+  keyTakeaways: [
+    "Benefit 1",
+    "Benefit 2"
+  ]
+}
+```
+
+**Options:**
+- **With custom title**: Add `keyTakeawaysTitle: "Your Custom Title"`
+- **Default title**: Omit `keyTakeawaysTitle` to use "Key takeaways"
+
+**Examples of custom titles:**
+- "Why Choose [Product Name]"
+- "Key Benefits"  
+- "Summary"
+- "Bottom Line"
+- "What This Means"
 
 ## Customization
 

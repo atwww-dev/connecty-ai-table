@@ -41,6 +41,11 @@
     <div class="container">
         <h1>Connecty AI Table Comparison Library Demo</h1>
         
+        <p style="background: #2a2a2a; padding: 15px; border-radius: 5px; margin-bottom: 30px;">
+            <strong>New Feature:</strong> Key takeaways sections now support configurable titles! 
+            Add <code>keyTakeawaysTitle: "Your Custom Title"</code> to any category, or omit it to use the default "Key takeaways" title.
+        </p>
+        
         <!-- Demo 1: Basic Table -->
         <div class="demo-section">
             <h2>Demo 1: Basic Table with Automatic Initialization</h2>
@@ -52,8 +57,8 @@
         
         <!-- Demo 2: Manual Initialization -->
         <div class="demo-section">
-            <h2>Demo 2: Manual Initialization with Different Data</h2>
-            <p>This table is manually initialized with different data.</p>
+            <h2>Demo 2: Custom Key Takeaways Titles</h2>
+            <p>This table demonstrates configurable key takeaways section titles.</p>
             <div id="demo2"></div>
         </div>
         
@@ -112,6 +117,7 @@
                             tooltip: "This is a tooltip explaining Feature 2"
                         }
                     ],
+                    keyTakeawaysTitle: "Why Choose Connecty AI", // Custom title example
                     keyTakeaways: [
                         "Connecty AI provides superior features in category 1",
                         "Competitors lack full implementation of key features"
@@ -159,6 +165,7 @@
                                 tooltip: "Monthly subscription cost"
                             }
                         ],
+                        keyTakeawaysTitle: "The Bottom Line", // Different custom title example
                         keyTakeaways: [
                             "Product A offers the best value for money",
                             "Product C is overpriced compared to alternatives"
@@ -189,6 +196,7 @@
                                 }
                             }
                         ],
+                        keyTakeawaysTitle: "Database Selection Guide", // Custom title for CMS item 1
                         keyTakeaways: [
                             "SQL databases offer traditional relational data models",
                             "MongoDB is better for document-oriented data"
@@ -216,6 +224,7 @@
                                 }
                             }
                         ],
+                        // No keyTakeawaysTitle specified - will use default "Key takeaways"
                         keyTakeaways: [
                             "Azure leads in geographical coverage",
                             "All providers continue expanding their global footprint"

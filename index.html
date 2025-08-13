@@ -742,6 +742,24 @@
               position: relative;
               z-index: 101;
             }
+            .comparison-container-${instanceId} .tooltip {
+              position: fixed;
+              background: #010007b2;
+              border: 1px solid #efeaff1a;
+              border-radius: 10px;
+              padding: 1rem;
+              width: 250px;
+              color: #efeaff;
+              font-size: 0.875rem;
+              z-index: 1000;
+              display: none;
+              backdrop-filter: blur(5px);
+              box-shadow: 0 2px 8px #0003;
+              pointer-events: none;
+            }
+            .comparison-container-${instanceId} .tooltip.visible {
+              display: block;
+            }
             .comparison-container-${instanceId} .feature-description-row {
               display: none;
               grid-template-columns: 40px 1fr 1fr 1fr 1fr;
@@ -1343,6 +1361,7 @@
                     html += '<div>' + feature.name + '</div>';
                     if (feature.tooltip) {
                         html += '<span class="help-icon">ⓘ</span>';
+                        html += '<div class="tooltip">' + feature.tooltip + '</div>';
                     }
                     html += '</div>\n';
                     
@@ -1457,6 +1476,30 @@
             html += '                }\n';
             html += '            });\n';
             html += '        });\n';
+            html += '    });\n';
+            
+            // Tooltip handlers
+            html += '    const helpIcons = container.querySelectorAll(".help-icon");\n';
+            html += '    helpIcons.forEach(helpIcon => {\n';
+            html += '        const tooltip = helpIcon.nextElementSibling;\n';
+            html += '        if (tooltip && tooltip.classList.contains("tooltip")) {\n';
+            html += '            helpIcon.addEventListener("mouseenter", function(e) {\n';
+            html += '                const rect = helpIcon.getBoundingClientRect();\n';
+            html += '                const tooltipWidth = 250;\n';
+            html += '                const spacing = 10;\n';
+            html += '                let left = rect.right + spacing;\n';
+            html += '                if (left + tooltipWidth > window.innerWidth) {\n';
+            html += '                    left = rect.left - tooltipWidth - spacing;\n';
+            html += '                }\n';
+            html += '                const top = rect.top + rect.height / 2 - tooltip.offsetHeight / 2;\n';
+            html += '                tooltip.style.left = Math.max(spacing, left) + "px";\n';
+            html += '                tooltip.style.top = Math.max(spacing, top) + "px";\n';
+            html += '                tooltip.classList.add("visible");\n';
+            html += '            });\n';
+            html += '            helpIcon.addEventListener("mouseleave", function() {\n';
+            html += '                tooltip.classList.remove("visible");\n';
+            html += '            });\n';
+            html += '        }\n';
             html += '    });\n';
             html += '});\n';
             html += '<\/script>\n';

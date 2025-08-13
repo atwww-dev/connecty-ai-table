@@ -35,6 +35,51 @@
         .spacer {
             height: 40px;
         }
+        
+        /* CSS Grid fallback for older browsers */
+        .main-grid {
+            display: -webkit-box;
+            display: -ms-flexbox;
+            display: flex;
+            -webkit-box-orient: horizontal;
+            -webkit-box-direction: normal;
+            -ms-flex-direction: row;
+            flex-direction: row;
+            gap: 30px;
+        }
+        
+        /* Modern browsers with grid support */
+        @supports (display: grid) {
+            .main-grid {
+                display: grid;
+                grid-template-columns: 1fr 400px;
+                gap: 30px;
+            }
+        }
+        
+        /* Responsive grid layout */
+        @media (max-width: 1000px) {
+            .main-grid {
+                -webkit-box-orient: vertical;
+                -webkit-box-direction: normal;
+                -ms-flex-direction: column;
+                flex-direction: column;
+                gap: 20px;
+            }
+            
+            @supports (display: grid) {
+                .main-grid {
+                    grid-template-columns: 1fr !important;
+                    gap: 20px !important;
+                }
+            }
+            
+            .controls-panel {
+                -webkit-box-ordinal-group: 0;
+                -ms-flex-order: -1;
+                order: -1;
+            }
+        }
     </style>
 </head>
 <body>
@@ -42,201 +87,1562 @@
         <h1>Connecty AI Table Comparison Library Demo</h1>
         
         <p style="background: #2a2a2a; padding: 15px; border-radius: 5px; margin-bottom: 30px;">
-            <strong>New Feature:</strong> Key takeaways sections now support configurable titles! 
-            Add <code>keyTakeawaysTitle: "Your Custom Title"</code> to any category, or omit it to use the default "Key takeaways" title.
+            <strong>New Feature:</strong> HTML Export for SEO! Enter your own data below and export as static HTML for search engines.
         </p>
         
-        <!-- Demo 1: Basic Table -->
-        <div class="demo-section">
-            <h2>Demo 1: Basic Table with Automatic Initialization</h2>
-            <p>This table uses the global window.comparisonData object and automatic initialization.</p>
-            <div id="demo1" data-comparison></div>
-        </div>
-        
-        <div class="spacer"></div>
-        
-        <!-- Demo 2: Manual Initialization -->
-        <div class="demo-section">
-            <h2>Demo 2: Custom Key Takeaways Titles</h2>
-            <p>This table demonstrates configurable key takeaways section titles.</p>
-            <div id="demo2"></div>
-        </div>
-        
-        <div class="spacer"></div>
-        
-        <!-- Demo 3: Multiple Tables -->
-        <div class="demo-section">
-            <h2>Demo 3: Multiple Tables in CMS-like Environment</h2>
-            <p>These tables demonstrate how to use multiple tables in a CMS environment.</p>
+        <!-- Main Layout: Preview Left, Controls Right -->
+        <div class="main-grid" style="display: grid; grid-template-columns: 1fr 400px; gap: 30px; margin-bottom: 40px;">
             
-            <!-- Simulated CMS Item 1 -->
-            <div style="margin-bottom: 30px; padding: 20px; background: #1e1e1e; border-radius: 5px;">
-                <h3>CMS Item 1: Database Comparison</h3>
-                <div id="cms-item1" data-comparison></div>
+            <!-- Left Side: Static Preview -->
+            <div>
+                <h2>Static HTML Preview</h2>
+                <p>This shows the static HTML that will be copied to clipboard - exactly what gets pasted in Webflow:</p>
+                <div id="customPreview" style="min-height: 400px; border: 1px solid #333; border-radius: 10px; padding: 20px; background: #0a0a0a;">
+                    <div style="color: #666; text-align: center; padding: 50px 20px;">
+                        Edit the JSON data on the right to see your table preview here.
+                    </div>
+                </div>
             </div>
             
-            <!-- Simulated CMS Item 2 -->
-            <div style="margin-bottom: 30px; padding: 20px; background: #1e1e1e; border-radius: 5px;">
-                <h3>CMS Item 2: Cloud Provider Comparison</h3>
-                <div id="cms-item2" data-comparison></div>
+            <!-- Right Side: Controls -->
+            <div class="controls-panel" style="background: #1e1e1e; padding: 20px; border-radius: 10px; height: fit-content;">
+                <h2>Data & Export</h2>
+                
+                <div style="margin-bottom: 15px;">
+                    <label style="display: block; margin-bottom: 8px; font-weight: 500; font-size: 14px;">JSON Data:</label>
+                    <textarea id="dataInput" style="width: 100%; height: 200px; background: #333; color: #eee; border: 1px solid #555; border-radius: 5px; padding: 10px; font-family: 'Courier New', monospace; font-size: 11px; resize: vertical;" placeholder="Paste your JSON data here..."></textarea>
+                </div>
+                
+                <div style="margin-bottom: 15px; display: flex; flex-direction: column; gap: 8px;">
+                    <button id="previewBtn" style="padding: 12px; background: #3f00ff; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 500;">Update Preview</button>
+                    <button id="copyHtmlBtn" style="padding: 12px; background: #17a2b8; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 500;">Copy HTML</button>
+                    <button id="exportBtn" style="padding: 12px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 500;">View Export Code</button>
+                </div>
+                
+                <div id="validationMessage" style="padding: 10px; border-radius: 5px; margin-bottom: 15px; display: none; font-size: 13px;"></div>
+                
+                <div style="font-size: 12px; color: #999; line-height: 1.4;">
+                    <strong>Workflow:</strong><br>
+                    1. Edit JSON data above<br>
+                    2. Click "Update Preview"<br>
+                    3. Click "Copy HTML" (copies exactly what you see)<br>
+                    4. Paste in Webflow CMS
+                </div>
+            </div>
+        </div>
+        
+    </div>
+
+    <!-- Export Modal -->
+    <div id="exportModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center;">
+        <div style="background: #1e1e1e; border-radius: 10px; padding: 30px; max-width: 90%; max-height: 90%; overflow: auto; position: relative;">
+            <h3 style="color: #fff; margin-top: 0;">Export HTML for Webflow</h3>
+            <p style="color: #ccc; margin-bottom: 20px;">This is exactly the same HTML shown in the preview. Copy and paste into Webflow:</p>
+            
+            <div style="position: relative;">
+                <textarea id="exportCode" readonly style="width: 100%; height: 400px; background: #333; color: #eee; border: 1px solid #555; border-radius: 5px; padding: 15px; font-family: 'Courier New', monospace; font-size: 12px; resize: vertical;"></textarea>
+                <button id="copyCodeBtn" style="position: absolute; top: 10px; right: 10px; padding: 8px 16px; background: #17a2b8; color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 12px;">Copy</button>
+            </div>
+            
+            <div style="margin-top: 20px; display: flex; gap: 10px; justify-content: flex-end;">
+                <button id="downloadCodeBtn" style="padding: 10px 20px; background: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer;">Download</button>
+                <button id="closeModalBtn" style="padding: 10px 20px; background: #6c757d; color: white; border: none; border-radius: 5px; cursor: pointer;">Close</button>
             </div>
         </div>
     </div>
 
-    <!-- Sample Data for Demo 1 -->
+    <!-- Load comparison data -->
+    <script src="comparison-data.js"></script>
     <script>
-        // Global data for auto-initialization
-        window.comparisonData = {
-            headers: ["Connecty AI", "Databricks AI BI Genie", "Databricks Unity Catalog"],
-            categories: [
-                {
-                    name: "Features Category 1",
-                    features: [
-                        {
-                            name: "Feature 1",
-                            connectyAI: { type: "check" },
-                            competition1: "close",
-                            competition2: "close",
-                            descriptions: {
-                                connectyAI: "Connecty AI has this feature and it's great.",
-                                competition1: "Competitor 1 doesn't have this feature.",
-                                competition2: "Competitor 2 doesn't have this feature."
-                            },
-                            tooltip: "This is a tooltip explaining Feature 1"
-                        },
-                        {
-                            name: "Feature 2",
-                            connectyAI: { type: "check" },
-                            competition1: { type: "warning", text: "Limited" },
-                            competition2: "close",
-                            descriptions: {
-                                connectyAI: "Connecty AI has this feature fully implemented.",
-                                competition1: "Competitor 1 has limited implementation.",
-                                competition2: "Competitor 2 doesn't have this feature."
-                            },
-                            tooltip: "This is a tooltip explaining Feature 2"
-                        }
-                    ],
-                    keyTakeawaysTitle: "Why Choose Connecty AI", // Custom title example
-                    keyTakeaways: [
-                        "Connecty AI provides superior features in category 1",
-                        "Competitors lack full implementation of key features"
-                    ]
-                }
-            ]
-        };
+        // Use the data from comparison-data.js as window.comparisonData
+        if (typeof comparisonData !== 'undefined') {
+            window.comparisonData = comparisonData;
+        } else {
+            // Fallback demo data if comparison-data.js doesn't load
+            window.comparisonData = {
+                headers: ["Connecty AI", "Databricks AI BI Genie", "Databricks Unity Catalog"],
+                categories: [
+                    {
+                        name: "Demo Category",
+                        features: [
+                            {
+                                name: "Demo Feature",
+                                connectyAI: { type: "check" },
+                                competition1: "close",
+                                competition2: "close",
+                                descriptions: {
+                                    connectyAI: "Demo description for Connecty AI.",
+                                    competition1: "Demo description for competitor 1.",
+                                    competition2: "Demo description for competitor 2."
+                                },
+                                tooltip: "This is a demo tooltip"
+                            }
+                        ],
+                        keyTakeaways: ["Demo takeaway 1", "Demo takeaway 2"]
+                    }
+                ]
+            };
+        }
     </script>
 
-    <!-- Include the library -->
-    <script src="comparison.js"></script>
+    <!-- comparison.js is deprecated - generating HTML directly -->
     
-    <!-- Demo 2: Manual initialization -->
+    <!-- HTML Export Functionality -->
     <script>
+        function exportTableAsHTML(tableData, tableId = 'exported-table') {
+            let html = `<div id="${tableId}" class="comparison-table-export">\n`;
+            
+            // Add basic styles for the exported table
+            html += `<style>
+.comparison-table-export {
+    font-family: 'Roboto', sans-serif;
+    background-color: #06001a;
+    border-radius: 1rem;
+    padding: 2rem;
+    color: #efeaff;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+.export-header {
+    display: grid;
+    grid-template-columns: 1fr repeat(3, 1fr);
+    border-bottom: 1px solid #efeaff1a;
+    padding: 1rem 0;
+    font-weight: 500;
+}
+.export-header > div {
+    padding: 0 1rem;
+    border-right: 1px solid #efeaff1a;
+}
+.export-header > div:last-child {
+    border-right: none;
+}
+.export-category {
+    margin-top: 2rem;
+}
+.export-category-title {
+    font-weight: 500;
+    padding: 1rem 0;
+    border-bottom: 1px solid #efeaff1a;
+}
+.export-feature-row {
+    display: grid;
+    grid-template-columns: 1fr repeat(3, 1fr);
+    border-bottom: 1px solid #efeaff1a;
+    padding: 1rem 0;
+}
+.export-feature-row > div {
+    padding: 0 1rem;
+    border-right: 1px solid #efeaff1a;
+    display: flex;
+    align-items: center;
+    min-height: 2.5rem;
+}
+.export-feature-row > div:last-child {
+    border-right: none;
+}
+.export-feature-name {
+    font-weight: 500;
+}
+.export-feature-value {
+    justify-content: center;
+}
+.export-check {
+    color: #3FC380;
+}
+.export-warning {
+    color: #EFEAFF;
+}
+.export-close {
+    color: #EFEAFF;
+}
+.export-key-takeaways {
+    margin-top: 2rem;
+    padding: 2rem;
+    background-color: #a299c11a;
+    border-radius: 1rem;
+}
+.export-takeaways-title {
+    font-weight: 500;
+    margin-bottom: 1rem;
+}
+.export-takeaways-list {
+    list-style: none;
+    padding-left: 0;
+}
+.export-takeaways-list li {
+    margin-bottom: 0.5rem;
+}
+</style>\n`;
+            
+            // Add table header
+            html += '<div class="export-header">\n';
+            html += `<div>Feature</div>\n`;
+            tableData.headers.forEach(header => {
+                html += `<div>${header}</div>\n`;
+            });
+            html += '</div>\n';
+            
+            // Add categories and features
+            tableData.categories.forEach(category => {
+                html += `<div class="export-category">\n`;
+                html += `<h2 class="export-category-title">${category.name}</h2>\n`;
+                
+                // Add features
+                category.features.forEach(feature => {
+                    html += '<div class="export-feature-row">\n';
+                    html += `<div class="export-feature-name">${feature.name}</div>\n`;
+                    
+                    // Get company keys
+                    const companyKeys = ["connectyAI", "competition1", "competition2"];
+                    const headerKeys = tableData.headers.map((header, i) => {
+                        if (companyKeys[i] && feature[companyKeys[i]] !== undefined) {
+                            return companyKeys[i];
+                        }
+                        const normalizedKey = header.toLowerCase().replace(/\s+/g, "");
+                        if (feature[normalizedKey] !== undefined) {
+                            return normalizedKey;
+                        }
+                        return `company${i}`;
+                    });
+                    
+                    // Add feature values
+                    headerKeys.forEach(key => {
+                        const value = feature[key] || "close";
+                        html += '<div class="export-feature-value">';
+                        
+                        if (typeof value === "object") {
+                            const statusClass = `export-${value.type}`;
+                            const icon = getExportIcon(value.type);
+                            const text = value.text ? ` ${value.text}` : '';
+                            html += `<span class="${statusClass}">${icon}${text}</span>`;
+                        } else {
+                            const statusClass = `export-${value}`;
+                            const icon = getExportIcon(value);
+                            html += `<span class="${statusClass}">${icon}</span>`;
+                        }
+                        
+                        html += '</div>\n';
+                    });
+                    
+                    html += '</div>\n';
+                });
+                
+                // Add key takeaways
+                if (category.keyTakeaways && category.keyTakeaways.length > 0) {
+                    html += '<div class="export-key-takeaways">\n';
+                    const title = category.keyTakeawaysTitle || "Key takeaways";
+                    html += `<h3 class="export-takeaways-title">${title}</h3>\n`;
+                    html += '<ul class="export-takeaways-list">\n';
+                    category.keyTakeaways.forEach((takeaway, index) => {
+                        html += `<li>${index + 1}. ${takeaway}</li>\n`;
+                    });
+                    html += '</ul>\n';
+                    html += '</div>\n';
+                }
+                
+                html += '</div>\n';
+            });
+            
+            html += '</div>\n';
+            return html;
+        }
+        
+        function getExportIcon(status) {
+            const icons = {
+                check: '✓',
+                warning: '⚠',
+                close: '✗'
+            };
+            return icons[status] || '✗';
+        }
+        
+        function downloadHTML(content, filename = 'webflow-comparison-table.html') {
+            // For Webflow CMS - just the clean HTML content without doctype/head/body
+            const webflowHTML = content;
+            
+            const blob = new Blob([webflowHTML], { type: 'text/html' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+        
+        function copyToClipboard(content) {
+            if (!navigator.clipboard) {
+                // Fallback for older browsers
+                try {
+                    const textArea = document.createElement('textarea');
+                    textArea.value = content;
+                    textArea.style.position = 'fixed';
+                    textArea.style.opacity = '0';
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    showValidationMessage('HTML copied to clipboard! Ready to paste in Webflow.');
+                } catch (fallbackError) {
+                    showValidationMessage('Could not copy to clipboard. Use the download instead.', true);
+                }
+                return;
+            }
+            
+            navigator.clipboard.writeText(content).then(() => {
+                showValidationMessage('HTML copied to clipboard! Ready to paste in Webflow.');
+            }).catch(() => {
+                showValidationMessage('Could not copy to clipboard. Use the download instead.', true);
+            });
+        }
+        
+        function exportCurrentTable() {
+            if (window.comparisonData) {
+                const htmlContent = exportTableAsHTML(window.comparisonData);
+                downloadHTML(htmlContent);
+                console.log('Table exported as HTML for SEO purposes');
+            } else {
+                console.error('No comparison data available to export');
+            }
+        }
+        
+        // Custom data management
+        let customTableInstance = null;
+        let currentCustomData = null;
+        
+        function validateJSON(jsonString) {
+            try {
+                const data = JSON.parse(jsonString);
+                
+                // Basic validation
+                if (!data.headers || !Array.isArray(data.headers)) {
+                    throw new Error('Headers must be an array');
+                }
+                if (!data.categories || !Array.isArray(data.categories)) {
+                    throw new Error('Categories must be an array');
+                }
+                
+                // Validate categories structure
+                data.categories.forEach((category, catIndex) => {
+                    if (!category.name) {
+                        throw new Error(`Category ${catIndex + 1} missing name`);
+                    }
+                    if (!category.features || !Array.isArray(category.features)) {
+                        throw new Error(`Category "${category.name}" must have features array`);
+                    }
+                    
+                    category.features.forEach((feature, featIndex) => {
+                        if (!feature.name) {
+                            throw new Error(`Feature ${featIndex + 1} in category "${category.name}" missing name`);
+                        }
+                    });
+                });
+                
+                return { valid: true, data: data };
+            } catch (error) {
+                return { valid: false, error: error.message };
+            }
+        }
+        
+        function showValidationMessage(message, isError = false) {
+            const messageDiv = document.getElementById('validationMessage');
+            messageDiv.style.display = 'block';
+            messageDiv.style.backgroundColor = isError ? '#dc3545' : '#28a745';
+            messageDiv.style.color = 'white';
+            messageDiv.textContent = message;
+            
+            setTimeout(() => {
+                messageDiv.style.display = 'none';
+            }, 5000);
+        }
+        
+        function previewCustomTable() {
+            const dataInput = document.getElementById('dataInput');
+            const previewContainer = document.getElementById('customPreview');
+            
+            if (!dataInput || !previewContainer) {
+                showValidationMessage('Required elements not found on page.', true);
+                return;
+            }
+            
+            const validation = validateJSON(dataInput.value);
+            
+            if (!validation.valid) {
+                showValidationMessage(`Invalid JSON: ${validation.error}`, true);
+                return;
+            }
+            
+            // Clear previous content
+            previewContainer.innerHTML = '';
+            
+            try {
+                // Generate the interactive HTML
+                const interactiveHTML = generateManualHTML(validation.data);
+                
+                // Show the interactive HTML in preview
+                previewContainer.innerHTML = interactiveHTML;
+                
+                // Add interactivity with error handling
+                try {
+                    addInteractivityToPreview(previewContainer);
+                } catch (interactivityError) {
+                    console.warn('Could not add interactivity:', interactivityError.message);
+                    // Preview still works without full interactivity
+                }
+                
+                currentCustomData = validation.data;
+                showValidationMessage('Preview updated! This is exactly what will be copied.');
+            } catch (error) {
+                showValidationMessage(`Error creating preview: ${error.message}`, true);
+                console.error('Preview generation error:', error);
+            }
+        }
+        
+        function addInteractivityToPreview(container) {
+            // Add chevron click handlers
+            const featureRows = container.querySelectorAll('.feature-row');
+            featureRows.forEach(row => {
+                const chevron = row.querySelector('.chevron-cell');
+                const categoryIndex = row.dataset.category;
+                const featureIndex = row.dataset.feature;
+                const descRow = container.querySelector(`.feature-description-row[data-category="${categoryIndex}"][data-feature="${featureIndex}"]`);
+                
+                if (chevron && descRow) {
+                    let isOpen = false;
+                    
+                    const toggleDescription = () => {
+                        isOpen = !isOpen;
+                        if (isOpen) {
+                            descRow.classList.add('visible');
+                            chevron.classList.add('open');
+                        } else {
+                            descRow.classList.remove('visible');
+                            chevron.classList.remove('open');
+                        }
+                    };
+                    
+                    row.addEventListener('click', (e) => {
+                        if (!e.target.classList.contains('help-icon')) {
+                            toggleDescription();
+                        }
+                    });
+                }
+            });
+            
+            // Add switch handlers
+            const switches = container.querySelectorAll('.switch');
+            switches.forEach(switchEl => {
+                const categoryIndex = switchEl.dataset.category;
+                let isActive = false;
+                
+                switchEl.addEventListener('click', () => {
+                    isActive = !isActive;
+                    switchEl.classList.toggle('active', isActive);
+                    
+                    // Toggle all feature descriptions in this category
+                    const categoryRows = container.querySelectorAll(`[data-category="${categoryIndex}"]`);
+                    categoryRows.forEach(row => {
+                        if (row.classList.contains('feature-row')) {
+                            const chevron = row.querySelector('.chevron-cell');
+                            const featureIndex = row.dataset.feature;
+                            const descRow = container.querySelector(`.feature-description-row[data-category="${categoryIndex}"][data-feature="${featureIndex}"]`);
+                            
+                            if (descRow && chevron) {
+                                if (isActive) {
+                                    descRow.classList.add('visible');
+                                    chevron.classList.add('open');
+                                } else {
+                                    descRow.classList.remove('visible');
+                                    chevron.classList.remove('open');
+                                }
+                            }
+                        }
+                    });
+                });
+            });
+            
+            // Add tooltip handlers
+            const helpIcons = container.querySelectorAll('.help-icon');
+            helpIcons.forEach(helpIcon => {
+                const tooltip = helpIcon.nextElementSibling;
+                if (tooltip && tooltip.classList.contains('tooltip')) {
+                    helpIcon.addEventListener('mouseenter', (e) => {
+                        const rect = helpIcon.getBoundingClientRect();
+                        const tooltipWidth = 250;
+                        const spacing = 10;
+
+                        let left = rect.right + spacing;
+                        if (left + tooltipWidth > window.innerWidth) {
+                            left = rect.left - tooltipWidth - spacing;
+                        }
+
+                        const top = rect.top + rect.height / 2 - tooltip.offsetHeight / 2;
+
+                        tooltip.style.left = `${Math.max(spacing, left)}px`;
+                        tooltip.style.top = `${Math.max(spacing, top)}px`;
+                        tooltip.classList.add('visible');
+                    });
+                    
+                    helpIcon.addEventListener('mouseleave', () => {
+                        tooltip.classList.remove('visible');
+                    });
+                }
+            });
+        }
+        
+        // Webflow-compatible styles matching original comparison.js
+        function generateWebflowStyles(instanceId) {
+            return `
+            .comparison-container-${instanceId} {
+              font-family: 'Roboto', sans-serif;
+              background-color: #06001a;
+              border-radius: 1rem;
+              padding: 2rem;
+              color: #efeaff;
+              max-width: 1200px;
+              margin: 0 auto;
+            }
+            .comparison-container-${instanceId} .table-header {
+              display: grid;
+              grid-template-columns: 40px 1fr repeat(3, 1fr);
+              border-bottom: 1px solid #efeaff1a;
+              padding: 1rem 0;
+              position: sticky;
+              top: 0;
+              background-color: #06001a;
+              z-index: 10;
+            }
+            .comparison-container-${instanceId} .header-cell {
+              padding: 0 1rem;
+              font-weight: 500;
+              border-right: 1px solid #efeaff1a;
+            }
+            .comparison-container-${instanceId} .header-cell:last-child {
+              border-right: none;
+            }
+            .comparison-container-${instanceId} .chevron-cell {
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              cursor: pointer;
+              font-size: 1.2rem;
+              color: #b3b0c8;
+              transition: transform 0.3s;
+              user-select: none;
+            }
+            .comparison-container-${instanceId} .chevron-cell.open {
+              transform: rotate(180deg);
+            }
+            .comparison-container-${instanceId} .category {
+              margin-top: 2rem;
+            }
+            .comparison-container-${instanceId} .category-header {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              padding: 1rem 0;
+              border-bottom: 1px solid #efeaff1a;
+            }
+            .comparison-container-${instanceId} .category-title {
+              font-weight: 500;
+              margin: 0;
+            }
+            .comparison-container-${instanceId} .show-description {
+              display: flex;
+              align-items: center;
+              gap: 1rem;
+            }
+            .comparison-container-${instanceId} .switch {
+              position: relative;
+              width: 48px;
+              height: 24px;
+              background: #221e36;
+              border: 1px solid #b3b0c8;
+              border-radius: 999px;
+              cursor: pointer;
+              transition: background 0.3s, border 0.3s;
+              box-sizing: border-box;
+            }
+            .comparison-container-${instanceId} .switch::after {
+              content: '';
+              position: absolute;
+              width: 4px;
+              height: 14px;
+              background: #fff;
+              border-radius: 6px;
+              top: 4px;
+              left: 7px;
+              transition: transform 0.3s;
+              box-shadow: 0 1px 2px #0002;
+            }
+            .comparison-container-${instanceId} .switch.active {
+              background: #3f00ff;
+              border-color: #3f00ff;
+            }
+            .comparison-container-${instanceId} .switch.active::after {
+              transform: translateX(26px);
+            }
+            .comparison-container-${instanceId} .feature-row {
+              display: grid;
+              grid-template-columns: 40px 1fr 1fr 1fr 1fr;
+              border-bottom: 1px solid #efeaff1a;
+              padding: 1rem 0;
+              background: transparent;
+              cursor: pointer;
+            }
+            .comparison-container-${instanceId} .feature-row > div {
+              border-right: 1px solid #efeaff1a;
+            }
+            .comparison-container-${instanceId} .feature-row > div:last-child {
+              border-right: none;
+            }
+            .comparison-container-${instanceId} .feature-name {
+              display: flex;
+              align-items: center;
+              gap: 0.5rem;
+              color: #efeaffb2;
+              padding: 0 1rem;
+              position: relative;
+              border-right: 1px solid #efeaff1a;
+            }
+            .comparison-container-${instanceId} .feature-value {
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              padding: 0 1rem;
+              border-right: 1px solid #efeaff1a;
+              background: transparent;
+              min-height: 2.5rem;
+            }
+            .comparison-container-${instanceId} .feature-value:last-child {
+              border-right: none;
+            }
+            .comparison-container-${instanceId} .icon-container {
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 0.5rem;
+              width: 100%;
+            }
+            .comparison-container-${instanceId} .icon-wrapper {
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              width: 18px;
+              height: 18px;
+              flex-shrink: 0;
+            }
+            .comparison-container-${instanceId} .help-icon {
+              cursor: pointer;
+              color: #efeaff;
+              font-size: 1rem;
+              margin-left: 0.5rem;
+              position: relative;
+              z-index: 101;
+            }
+            .comparison-container-${instanceId} .feature-description-row {
+              display: none;
+              grid-template-columns: 40px 1fr 1fr 1fr 1fr;
+              background: #08041e80;
+              border-bottom: 1px solid #efeaff1a;
+              border-radius: 0 0 1rem 1rem;
+            }
+            .comparison-container-${instanceId} .feature-description-row.visible {
+              display: grid;
+            }
+            .comparison-container-${instanceId} .feature-description-cell {
+              padding: 1rem;
+              border-right: 1px solid #efeaff1a;
+              border-top: 1px solid #efeaff1a;
+              color: #efeaffb2;
+              font-size: 0.95em;
+              background: transparent;
+            }
+            .comparison-container-${instanceId} .feature-description-cell:last-child {
+              border-right: none;
+            }
+            .comparison-container-${instanceId} .feature-description-cell.empty {
+              background: transparent;
+              border-right: none;
+            }
+            .comparison-container-${instanceId} .key-takeaways {
+              margin-top: 2rem;
+              padding: 2rem;
+              background-color: #a299c11a;
+              border-radius: 1rem;
+            }
+            .comparison-container-${instanceId} .takeaways-title {
+              font-weight: 500;
+              margin-bottom: 1rem;
+              margin-top: 0;
+            }
+            .comparison-container-${instanceId} .takeaways-list {
+              list-style: none;
+              padding-left: 0;
+              margin: 0;
+            }
+            .comparison-container-${instanceId} .takeaways-list li {
+              margin-bottom: 0.5rem;
+            }
+            .comparison-container-${instanceId} .feature-check-text {
+              color: inherit;
+              font-size: 0.9em;
+              text-align: center;
+            }
+            @media (max-width: 768px) {
+              .comparison-container-${instanceId} {
+                padding: 1rem;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+              }
+              .comparison-container-${instanceId} .table-header,
+              .comparison-container-${instanceId} .feature-row,
+              .comparison-container-${instanceId} .feature-description-row {
+                grid-template-columns: 30px 1.5fr 1fr 1fr 1fr;
+                font-size: 0.95em;
+                min-width: 600px;
+              }
+            }
+            `;
+        }
+
+        // Simplified styles for Webflow CMS
+        function generateSimplifiedStyles(instanceId) {
+            return `
+            .comparison-container-${instanceId} {
+              font-family: 'Roboto', sans-serif;
+              background-color: #06001a;
+              border-radius: 1rem;
+              padding: 2rem;
+              color: #efeaff;
+              max-width: 1200px;
+              margin: 0 auto;
+            }
+            .comparison-container-${instanceId} .table-header {
+              display: grid;
+              grid-template-columns: 40px 1fr repeat(3, 1fr);
+              border-bottom: 1px solid rgba(239, 234, 255, 0.1);
+              padding: 1rem 0;
+              font-weight: 500;
+            }
+            .comparison-container-${instanceId} .table-header > div {
+              padding: 0 1rem;
+              border-right: 1px solid rgba(239, 234, 255, 0.1);
+            }
+            .comparison-container-${instanceId} .table-header > div:last-child {
+              border-right: none;
+            }
+            .comparison-container-${instanceId} .category {
+              margin-top: 2rem;
+            }
+            .comparison-container-${instanceId} .category-title {
+              font-weight: 500;
+              padding: 1rem 0;
+              border-bottom: 1px solid rgba(239, 234, 255, 0.1);
+            }
+            .comparison-container-${instanceId} .feature-row {
+              display: grid;
+              grid-template-columns: 40px 1fr repeat(3, 1fr);
+              border-bottom: 1px solid rgba(239, 234, 255, 0.1);
+              padding: 1rem 0;
+            }
+            .comparison-container-${instanceId} .feature-row > div {
+              padding: 0 1rem;
+              border-right: 1px solid rgba(239, 234, 255, 0.1);
+              display: flex;
+              align-items: center;
+              min-height: 2.5rem;
+            }
+            .comparison-container-${instanceId} .feature-row > div:last-child {
+              border-right: none;
+            }
+            .comparison-container-${instanceId} .feature-name {
+              font-weight: 500;
+              color: rgba(239, 234, 255, 0.7);
+            }
+            .comparison-container-${instanceId} .feature-value {
+              justify-content: center;
+            }
+            .comparison-container-${instanceId} .check {
+              color: #3FC380;
+            }
+            .comparison-container-${instanceId} .warning {
+              color: #EFEAFF;
+            }
+            .comparison-container-${instanceId} .close {
+              color: #EFEAFF;
+            }
+            .comparison-container-${instanceId} .key-takeaways {
+              margin-top: 2rem;
+              padding: 2rem;
+              background-color: rgba(162, 153, 193, 0.1);
+              border-radius: 1rem;
+            }
+            .comparison-container-${instanceId} .takeaways-title {
+              font-weight: 500;
+              margin-bottom: 1rem;
+            }
+            .comparison-container-${instanceId} .takeaways-list {
+              list-style: none;
+              padding-left: 0;
+            }
+            .comparison-container-${instanceId} .takeaways-list li {
+              margin-bottom: 0.5rem;
+            }
+            @media (max-width: 768px) {
+              .comparison-container-${instanceId} {
+                padding: 1rem;
+                overflow-x: auto;
+              }
+              .comparison-container-${instanceId} .table-header,
+              .comparison-container-${instanceId} .feature-row {
+                min-width: 600px;
+              }
+            }
+            `;
+        }
+
+        // Keep the original complex styles function for backwards compatibility
+        function generateStyles(instanceId) {
+            return `
+            .comparison-container-${instanceId} {
+              font-family: 'Roboto', sans-serif;
+              background-color: #06001a;
+              border-radius: 1rem;
+              padding: 2rem;
+              color: #efeaff;
+            }
+
+            .comparison-container-${instanceId} .table-header {
+              display: grid;
+              grid-template-columns: 40px 1fr repeat(3, 1fr);
+              border-bottom: 1px solid #efeaff1a;
+              padding: 1rem 0;
+              position: sticky;
+              top: 0;
+              background-color: #06001a;
+              z-index: 10;
+            }
+
+            .comparison-container-${instanceId} .header-cell {
+              padding: 0 1rem;
+              font-weight: 500;
+              border-right: 1px solid #efeaff1a;
+            }
+            .comparison-container-${instanceId} .header-cell:last-child {
+              border-right: none;
+            }
+
+            .comparison-container-${instanceId} .chevron-cell {
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              cursor: pointer;
+              font-size: 1.2rem;
+              color: #b3b0c8;
+              transition: transform 0.3s;
+              user-select: none;
+            }
+            .comparison-container-${instanceId} .chevron-cell.open {
+              transform: rotate(180deg);
+            }
+
+            .comparison-container-${instanceId} .category {
+              margin-top: 2rem;
+            }
+
+            .comparison-container-${instanceId} .category-header {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              padding: 1rem 0;
+              border-bottom: 1px solid #efeaff1a;
+            }
+
+            .comparison-container-${instanceId} .category-title {
+              font-weight: 500;
+            }
+
+            .comparison-container-${instanceId} .show-description {
+              display: flex;
+              align-items: center;
+              gap: 1rem;
+            }
+
+            .comparison-container-${instanceId} .switch {
+              position: relative;
+              width: 48px;
+              height: 24px;
+              background: #221e36;
+              border: 1px solid #b3b0c8;
+              border-radius: 999px;
+              cursor: pointer;
+              transition: background 0.3s, border 0.3s;
+              box-sizing: border-box;
+            }
+
+            .comparison-container-${instanceId} .switch::after {
+              content: '';
+              position: absolute;
+              width: 4px;
+              height: 14px;
+              background: #fff;
+              border-radius: 6px;
+              top: 4px;
+              left: 7px;
+              transition: transform 0.3s;
+              box-shadow: 0 1px 2px #0002;
+            }
+
+            .comparison-container-${instanceId} .switch.active {
+              background: #3f00ff;
+              border-color: #3f00ff;
+            }
+
+            .comparison-container-${instanceId} .switch.active::after {
+              transform: translateX(26px);
+            }
+
+            .comparison-container-${instanceId} .tooltip {
+              position: fixed;
+              background: #010007b2;
+              border: 1px solid #efeaff1a;
+              border-radius: 10px;
+              padding: 1rem;
+              width: 250px;
+              color: #efeaff;
+              font-size: 0.875rem;
+              z-index: 1000;
+              display: none;
+              backdrop-filter: blur(5px);
+              box-shadow: 0 2px 8px #0003;
+              pointer-events: none;
+            }
+            .comparison-container-${instanceId} .tooltip.visible {
+              display: block;
+            }
+
+            .comparison-container-${instanceId} .help-icon {
+              cursor: pointer;
+              color: #efeaff;
+              font-size: 1rem;
+              margin-left: 0.5rem;
+              position: relative;
+              z-index: 101;
+            }
+
+            .comparison-container-${instanceId} .feature-row {
+              display: grid;
+              grid-template-columns: 40px 1fr 1fr 1fr 1fr;
+              border-bottom: 1px solid #efeaff1a;
+              padding: 1rem 0;
+              background: transparent;
+              cursor: pointer;
+            }
+            .comparison-container-${instanceId} .feature-row > div {
+              border-right: 1px solid #efeaff1a;
+            }
+            .comparison-container-${instanceId} .feature-row > div:last-child {
+              border-right: none;
+            }
+
+            .comparison-container-${instanceId} .feature-name {
+              display: flex;
+              align-items: center;
+              gap: 0.5rem;
+              color: #efeaffb2;
+              padding: 0 1rem;
+              position: relative;
+              border-right: 1px solid #efeaff1a;
+            }
+
+            .comparison-container-${instanceId} .feature-name h2 {
+              margin: 0;
+              font-size: 1em;
+              font-weight: normal;
+              color: inherit;
+            }
+
+            .comparison-container-${instanceId} .feature-value {
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              padding: 0 1rem;
+              border-right: 1px solid #efeaff1a;
+              background: transparent;
+              min-height: 2.5rem;
+            }
+            .comparison-container-${instanceId} .feature-value:last-child {
+              border-right: none;
+            }
+
+            .comparison-container-${instanceId} .icon-container {
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              gap: 0.5rem;
+              width: 100%;
+            }
+
+            .comparison-container-${instanceId} .icon-wrapper {
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              width: 18px;
+              height: 18px;
+              flex-shrink: 0;
+            }
+
+            .comparison-container-${instanceId} .icon-wrapper svg {
+              width: 18px;
+              height: 18px;
+              display: block;
+            }
+
+            .comparison-container-${instanceId} .feature-description-row {
+              display: grid;
+              grid-template-columns: 40px 1fr 1fr 1fr 1fr;
+              background: #08041e80;
+              border-bottom: 1px solid #efeaff1a;
+              border-radius: 0 0 1rem 1rem;
+            }
+            .comparison-container-${instanceId} .feature-description-row.visible {
+              display: grid;
+            }
+            .comparison-container-${instanceId} .feature-description-cell {
+              padding: 1rem;
+              border-right: 1px solid #efeaff1a;
+              border-top: 1px solid #efeaff1a;
+              color: #efeaffb2;
+              font-size: 0.95em;
+              background: transparent;
+            }
+            .comparison-container-${instanceId} .feature-description-cell:last-child {
+              border-right: none;
+            }
+            .comparison-container-${instanceId} .feature-description-cell.empty {
+              background: transparent;
+              border-right: none;
+            }
+
+            .comparison-container-${instanceId} .key-takeaways {
+              position: relative;
+              margin-top: 2rem;
+              padding: 2rem;
+              background-color: #a299c11a;
+              border-radius: 1rem;
+              overflow: hidden;
+              z-index: 1;
+            }
+            .comparison-container-${instanceId} .key-takeaways::before {
+              content: '';
+              position: absolute;
+              inset: -4px;
+              border-radius: 1.1rem;
+              background: linear-gradient(120deg, #a299c1, #efeaff, #221e36, #a299c1 80%);
+              filter: blur(8px);
+              opacity: 0.18;
+              z-index: -1;
+              animation: glowing-border-${instanceId} 10s linear infinite;
+              background-size: 200% 200%;
+            }
+            @keyframes glowing-border-${instanceId} {
+              0% {
+                background-position: 0% 50%;
+              }
+              100% {
+                background-position: 200% 50%;
+              }
+            }
+
+            .comparison-container-${instanceId} .takeaways-title {
+              font-weight: 500;
+              margin-bottom: 1rem;
+            }
+
+            .comparison-container-${instanceId} .takeaways-list {
+              list-style: none;
+              padding-left: 0;
+            }
+
+            .comparison-container-${instanceId} .takeaways-list li {
+              margin-bottom: 0.5rem;
+            }
+
+            .comparison-container-${instanceId} .feature-check-text {
+              color: inherit;
+              font-size: 0.9em;
+              text-align: center;
+            }
+
+            /* Responsive styles */
+            @media (max-width: 900px) {
+              .comparison-container-${instanceId} {
+                padding: 1rem;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+              }
+              .comparison-container-${instanceId} .table-header,
+              .comparison-container-${instanceId} .feature-row,
+              .comparison-container-${instanceId} .feature-description-row {
+                grid-template-columns: 30px 1.5fr 1fr 1fr 1fr;
+                font-size: 0.95em;
+                min-width: 600px;
+              }
+              .comparison-container-${instanceId} .feature-name,
+              .comparison-container-${instanceId} .feature-value,
+              .comparison-container-${instanceId} .feature-description-cell {
+                padding: 0 0.5rem;
+              }
+              .comparison-container-${instanceId} .key-takeaways {
+                min-width: 600px;
+              }
+            }
+
+            @media (max-width: 600px) {
+              .comparison-container-${instanceId} {
+                padding: 0.5rem;
+                width: 100%;
+                max-width: 100vw;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+              }
+              .comparison-container-${instanceId} .table-header,
+              .comparison-container-${instanceId} .feature-row,
+              .comparison-container-${instanceId} .feature-description-row {
+                min-width: 600px;
+              }
+              .comparison-container-${instanceId} .feature-name,
+              .comparison-container-${instanceId} .feature-value,
+              .comparison-container-${instanceId} .feature-description-cell {
+                padding: 0 0.25rem;
+              }
+              .comparison-container-${instanceId} .key-takeaways {
+                min-width: 600px;
+                padding: 1rem;
+              }
+              .comparison-container-${instanceId} .takeaways-title {
+                font-size: 1em;
+              }
+              .comparison-container-${instanceId} .takeaways-list li {
+                font-size: 0.95em;
+              }
+            }
+
+            @media (max-width: 480px) {
+              .comparison-container-${instanceId} {
+                padding: 0.25rem;
+              }
+              .comparison-container-${instanceId} .table-header,
+              .comparison-container-${instanceId} .feature-row,
+              .comparison-container-${instanceId} .feature-description-row {
+                min-width: 600px;
+              }
+              .comparison-container-${instanceId} .category-header {
+                min-width: 600px;
+              }
+              .comparison-container-${instanceId} .key-takeaways {
+                min-width: 600px;
+              }
+            }
+            `;
+        }
+        
+        function generateStaticHTMLFromComparisonJS(data) {
+            // Instead of recreating HTML, let's extract it from the actual comparison.js instance
+            if (customTableInstance && customTableInstance.container) {
+                const liveContainer = customTableInstance.container;
+                const wrapper = liveContainer.querySelector(`[class^="comparison-container-"]`);
+                
+                if (wrapper) {
+                    // Clone the live HTML and make it static for SEO
+                    const clone = wrapper.cloneNode(true);
+                    
+                    // Remove interactive elements for SEO version
+                    const chevrons = clone.querySelectorAll('.chevron-cell');
+                    chevrons.forEach(chevron => {
+                        chevron.innerHTML = ''; // Remove chevron arrows
+                        chevron.style.cursor = 'default';
+                    });
+                    
+                    // Make all description rows visible for SEO
+                    const descRows = clone.querySelectorAll('.feature-description-row');
+                    descRows.forEach(row => {
+                        row.classList.add('visible');
+                        row.style.display = 'grid';
+                    });
+                    
+                    // Remove click handlers by removing event listeners (they won't work in static HTML anyway)
+                    const featureRows = clone.querySelectorAll('.feature-row');
+                    featureRows.forEach(row => {
+                        row.style.cursor = 'default';
+                    });
+                    
+                    // Remove tooltips for static version
+                    const tooltips = clone.querySelectorAll('.tooltip');
+                    tooltips.forEach(tooltip => tooltip.remove());
+                    
+                    // Remove help icons for static version
+                    const helpIcons = clone.querySelectorAll('.help-icon');
+                    helpIcons.forEach(icon => icon.remove());
+                    
+                    // Remove switches for static version
+                    const switches = clone.querySelectorAll('.show-description');
+                    switches.forEach(switchEl => switchEl.remove());
+                    
+                    return clone.outerHTML;
+                }
+            }
+            
+            // Fallback to manual generation if no live instance
+            return generateManualHTML(data);
+        }
+        
+        function generateManualHTML(data) {
+            // Generate clean HTML for Webflow CMS with basic interactivity
+            const instanceId = 'webflow-table';
+            let html = '<div class="comparison-container-' + instanceId + '" id="' + instanceId + '">\n';
+            
+            // Include simplified styles inline
+            html += '<style>\n' + generateWebflowStyles(instanceId) + '\n</style>\n';
+            
+            // Table header
+            html += '<div class="table-header">\n';
+            html += '<div class="header-cell"></div>'; // Empty chevron column
+            html += '<div class="header-cell">Feature</div>';
+            data.headers.forEach(header => {
+                html += '<div class="header-cell">' + header + '</div>\n';
+            });
+            html += '</div>\n';
+            
+            // Categories
+            data.categories.forEach((category, categoryIndex) => {
+                html += '<div class="category" data-category="' + categoryIndex + '">\n';
+                html += '<div class="category-header">\n';
+                html += '<h2 class="category-title">' + category.name + '</h2>\n';
+                html += '<div class="show-description">\n';
+                html += '<span>Show description</span>\n';
+                html += '<div class="switch" data-category="' + categoryIndex + '"></div>\n';
+                html += '</div>\n';
+                html += '</div>\n';
+                
+                // Features
+                category.features.forEach((feature, featureIndex) => {
+                    const featureId = 'cat' + categoryIndex + 'feat' + featureIndex;
+                    html += '<div class="feature-row" data-category="' + categoryIndex + '" data-feature="' + featureIndex + '">\n';
+                    
+                    // Chevron cell
+                    html += '<div class="chevron-cell">';
+                    html += '<svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M5 7L9 11L13 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+                    html += '</div>\n';
+                    
+                    // Feature name
+                    html += '<div class="feature-name">';
+                    html += '<div>' + feature.name + '</div>';
+                    if (feature.tooltip) {
+                        html += '<span class="help-icon">ⓘ</span>';
+                    }
+                    html += '</div>\n';
+                    
+                    // Feature values
+                    const companyKeys = ["connectyAI", "competition1", "competition2"];
+                    
+                    companyKeys.forEach(key => {
+                        const value = feature[key] || "close";
+                        html += '<div class="feature-value">';
+                        html += '<div class="icon-container">';
+                        html += '<div class="icon-wrapper">';
+                        
+                        if (typeof value === "object") {
+                            html += getStatusIcon(value.type);
+                            html += '</div>';
+                            if (value.text) {
+                                html += '<span class="feature-check-text">' + value.text + '</span>';
+                            }
+                        } else {
+                            html += getStatusIcon(value);
+                            html += '</div>';
+                        }
+                        
+                        html += '</div>';
+                        html += '</div>\n';
+                    });
+                    
+                    html += '</div>\n';
+                    
+                    // Feature descriptions (hidden by default)
+                    if (feature.descriptions) {
+                        html += '<div class="feature-description-row" data-category="' + categoryIndex + '" data-feature="' + featureIndex + '">\n';
+                        html += '<div class="feature-description-cell empty"></div>'; // Empty chevron cell
+                        html += '<div class="feature-description-cell empty"></div>'; // Empty feature name cell
+                        
+                        companyKeys.forEach(key => {
+                            const description = feature.descriptions[key] || '';
+                            html += '<div class="feature-description-cell">' + description + '</div>\n';
+                        });
+                        
+                        html += '</div>\n';
+                    }
+                });
+                
+                // Key takeaways
+                if (category.keyTakeaways && category.keyTakeaways.length > 0) {
+                    html += '<div class="key-takeaways">\n';
+                    const title = category.keyTakeawaysTitle || "Key takeaways";
+                    html += '<h3 class="takeaways-title">' + title + '</h3>\n';
+                    html += '<ul class="takeaways-list">\n';
+                    category.keyTakeaways.forEach((takeaway, index) => {
+                        html += '<li>' + (index + 1) + '. ' + takeaway + '</li>\n';
+                    });
+                    html += '</ul>\n';
+                    html += '</div>\n';
+                }
+                
+                html += '</div>\n';
+            });
+            
+            html += '</div>\n';
+            
+            // Add JavaScript for interactivity (matching original comparison.js behavior)
+            html += '<script>\n';
+            html += 'document.addEventListener("DOMContentLoaded", function() {\n';
+            html += '    const container = document.getElementById("' + instanceId + '");\n';
+            html += '    if (!container) return;\n';
+            
+            // Feature row click handlers (chevron expand/collapse)
+            html += '    container.addEventListener("click", function(e) {\n';
+            html += '        const row = e.target.closest(".feature-row");\n';
+            html += '        if (!row || e.target.classList.contains("help-icon")) return;\n';
+            html += '        const categoryIndex = row.dataset.category;\n';
+            html += '        const featureIndex = row.dataset.feature;\n';
+            html += '        const descRow = container.querySelector(".feature-description-row[data-category=\\"" + categoryIndex + "\\"][data-feature=\\"" + featureIndex + "\\"]");\n';
+            html += '        const chevron = row.querySelector(".chevron-cell");\n';
+            html += '        if (descRow && chevron) {\n';
+            html += '            let isOpen = descRow.classList.contains("visible");\n';
+            html += '            if (isOpen) {\n';
+            html += '                descRow.classList.remove("visible");\n';
+            html += '                chevron.classList.remove("open");\n';
+            html += '            } else {\n';
+            html += '                descRow.classList.add("visible");\n';
+            html += '                chevron.classList.add("open");\n';
+            html += '            }\n';
+            html += '        }\n';
+            html += '    });\n';
+            
+            // Switch handlers (toggle all descriptions in category)
+            html += '    const switches = container.querySelectorAll(".switch");\n';
+            html += '    switches.forEach(switchEl => {\n';
+            html += '        const categoryIndex = switchEl.dataset.category;\n';
+            html += '        let isActive = false;\n';
+            html += '        switchEl.addEventListener("click", function() {\n';
+            html += '            isActive = !isActive;\n';
+            html += '            switchEl.classList.toggle("active", isActive);\n';
+            html += '            const categoryRows = container.querySelectorAll("[data-category=\\"" + categoryIndex + "\\"]");\n';
+            html += '            categoryRows.forEach(row => {\n';
+            html += '                if (row.classList.contains("feature-row")) {\n';
+            html += '                    const chevron = row.querySelector(".chevron-cell");\n';
+            html += '                    const featureIndex = row.dataset.feature;\n';
+            html += '                    const descRow = container.querySelector(".feature-description-row[data-category=\\"" + categoryIndex + "\\"][data-feature=\\"" + featureIndex + "\\"]");\n';
+            html += '                    if (descRow && chevron) {\n';
+            html += '                        if (isActive) {\n';
+            html += '                            descRow.classList.add("visible");\n';
+            html += '                            chevron.classList.add("open");\n';
+            html += '                        } else {\n';
+            html += '                            descRow.classList.remove("visible");\n';
+            html += '                            chevron.classList.remove("open");\n';
+            html += '                        }\n';
+            html += '                    }\n';
+            html += '                }\n';
+            html += '            });\n';
+            html += '        });\n';
+            html += '    });\n';
+            html += '});\n';
+            html += '<\/script>\n';
+            
+            return html;
+        }
+        
+        // Simple text-based icons for Webflow compatibility
+        function getSimpleIcon(status) {
+            const icons = {
+                check: '✓',
+                warning: '⚠',
+                close: '✗'
+            };
+            return icons[status] || '✗';
+        }
+        
+        function getStatusIcon(status) {
+            const icons = {
+                check: `<svg width="18" height="18" viewBox="0 0 18 18" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M7.83073 12.8337L13.7057 6.95866L12.5391 5.79199L7.83073 10.5003L5.45573 8.12533L4.28906 9.29199L7.83073 12.8337ZM8.9974 17.3337C7.84462 17.3337 6.76128 17.1149 5.7474 16.6774C4.73351 16.2399 3.85156 15.6462 3.10156 14.8962C2.35156 14.1462 1.75781 13.2642 1.32031 12.2503C0.882812 11.2364 0.664062 10.1531 0.664062 9.00033C0.664062 7.84755 0.882812 6.76421 1.32031 5.75033C1.75781 4.73644 2.35156 3.85449 3.10156 3.10449C3.85156 2.35449 4.73351 1.76074 5.7474 1.32324C6.76128 0.885742 7.84462 0.666992 8.9974 0.666992C10.1502 0.666992 11.2335 0.885742 12.2474 1.32324C13.2613 1.76074 14.1432 2.35449 14.8932 3.10449C15.6432 3.85449 16.237 4.73644 16.6745 5.75033C17.112 6.76421 17.3307 7.84755 17.3307 9.00033C17.3307 10.1531 17.112 11.2364 16.6745 12.2503C16.237 13.2642 15.6432 14.1462 14.8932 14.8962C14.1432 15.6462 13.2613 16.2399 12.2474 16.6774C11.2335 17.1149 10.1502 17.3337 8.9974 17.3337ZM8.9974 15.667C10.8585 15.667 12.4349 15.0212 13.7266 13.7295C15.0182 12.4378 15.6641 10.8614 15.6641 9.00033C15.6641 7.13921 15.0182 5.56283 13.7266 4.27116C12.4349 2.97949 10.8585 2.33366 8.9974 2.33366C7.13628 2.33366 5.5599 2.97949 4.26823 4.27116C2.97656 5.56283 2.33073 7.13921 2.33073 9.00033C2.33073 10.8614 2.97656 12.4378 4.26823 13.7295C5.5599 15.0212 7.13628 15.667 8.9974 15.667Z" fill='#3FC380'/></svg>`,
+                warning: `<svg width="18" height="18" viewBox="0 0 20 17" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M0.835938 16.5003L10.0026 0.666992L19.1693 16.5003H0.835938ZM3.71094 14.8337H16.2943L10.0026 4.00033L3.71094 14.8337ZM10.0026 14.0003C10.2387 14.0003 10.4366 13.9205 10.5964 13.7607C10.7561 13.601 10.8359 13.4031 10.8359 13.167C10.8359 12.9309 10.7561 12.733 10.5964 12.5732C10.4366 12.4135 10.2387 12.3337 10.0026 12.3337C9.76649 12.3337 9.56858 12.4135 9.40885 12.5732C9.24913 12.733 9.16927 12.9309 9.16927 13.167C9.16927 13.4031 9.24913 13.601 9.40885 13.7607C9.56858 13.9205 9.76649 14.0003 10.0026 14.0003ZM9.16927 11.5003H10.8359V7.33366H9.16927V11.5003Z" fill="#EFEAFF"/></svg>`,
+                close: `<svg width="18" height="18" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M1.33073 11.8337L0.164062 10.667L4.83073 6.00033L0.164062 1.33366L1.33073 0.166992L5.9974 4.83366L10.6641 0.166992L11.8307 1.33366L7.16406 6.00033L11.8307 10.667L10.6641 11.8337L5.9974 7.16699L1.33073 11.8337Z" fill="#EFEAFF"/></svg>`,
+            };
+            return icons[status] || "";
+        }
+        
+        function showExportModal() {
+            const previewContainer = document.getElementById('customPreview');
+            
+            // Check if there's anything to show in the modal
+            if (!previewContainer.innerHTML.trim() || previewContainer.innerHTML.includes('Edit the JSON data')) {
+                showValidationMessage('Please update the preview first!', true);
+                return;
+            }
+            
+            // Show modal with exactly what's in the preview
+            const modal = document.getElementById('exportModal');
+            const exportCode = document.getElementById('exportCode');
+            exportCode.value = previewContainer.innerHTML;
+            modal.style.display = 'flex';
+        }
+        
+        function closeExportModal() {
+            document.getElementById('exportModal').style.display = 'none';
+        }
+        
+        function copyExportCode() {
+            const exportCode = document.getElementById('exportCode');
+            exportCode.select();
+            document.execCommand('copy');
+            showValidationMessage('HTML code copied to clipboard!');
+        }
+        
+        function downloadExportCode() {
+            const exportCode = document.getElementById('exportCode');
+            downloadHTML(exportCode.value, 'webflow-comparison-table.html');
+            showValidationMessage('HTML file downloaded!');
+        }
+        
+        function copyHtmlDirectly() {
+            const previewContainer = document.getElementById('customPreview');
+            const copyBtn = document.getElementById('copyHtmlBtn');
+            
+            // Check if there's anything to copy in the preview
+            if (!previewContainer.innerHTML.trim() || previewContainer.innerHTML.includes('Edit the JSON data')) {
+                showValidationMessage('Please update the preview first!', true);
+                return;
+            }
+            
+            // Show loading state
+            const originalText = copyBtn.textContent;
+            copyBtn.textContent = 'Copying...';
+            copyBtn.disabled = true;
+            
+            // Copy exactly what's shown in the preview
+            const htmlToCopy = previewContainer.innerHTML;
+            
+            navigator.clipboard.writeText(htmlToCopy).then(() => {
+                // Success feedback
+                copyBtn.textContent = '✓ Copied!';
+                copyBtn.style.background = '#28a745';
+                showValidationMessage('HTML copied to clipboard! This is exactly what you see in preview.');
+                
+                // Reset button after 2 seconds
+                setTimeout(() => {
+                    copyBtn.textContent = originalText;
+                    copyBtn.style.background = '#17a2b8';
+                    copyBtn.disabled = false;
+                }, 2000);
+            }).catch(() => {
+                // Fallback for older browsers
+                try {
+                    const textArea = document.createElement('textarea');
+                    textArea.value = htmlToCopy;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    
+                    // Success feedback
+                    copyBtn.textContent = '✓ Copied!';
+                    copyBtn.style.background = '#28a745';
+                    showValidationMessage('HTML copied to clipboard! This is exactly what you see in preview.');
+                    
+                    // Reset button after 2 seconds
+                    setTimeout(() => {
+                        copyBtn.textContent = originalText;
+                        copyBtn.style.background = '#17a2b8';
+                        copyBtn.disabled = false;
+                    }, 2000);
+                } catch (err) {
+                    // Copy failed
+                    copyBtn.textContent = 'Copy Failed';
+                    copyBtn.style.background = '#dc3545';
+                    showValidationMessage('Copy failed. Use "View Export Code" instead.', true);
+                    
+                    // Reset button after 2 seconds
+                    setTimeout(() => {
+                        copyBtn.textContent = originalText;
+                        copyBtn.style.background = '#17a2b8';
+                        copyBtn.disabled = false;
+                    }, 2000);
+                }
+            });
+        }
+        
+        function initializePreview() {
+            const dataInput = document.getElementById('dataInput');
+            if (dataInput && dataInput.value && dataInput.value.trim()) {
+                try {
+                    previewCustomTable();
+                } catch (error) {
+                    console.warn('Could not initialize preview:', error.message);
+                    showValidationMessage('Preview initialization failed. Please try updating manually.', true);
+                }
+            }
+        }
+        
+        // Set up custom data input handlers
         document.addEventListener('DOMContentLoaded', function() {
-            // Data for Demo 2
-            const demo2Data = {
-                headers: ["Product A", "Product B", "Product C"],
-                categories: [
-                    {
-                        name: "Alternative Category",
-                        features: [
-                            {
-                                name: "Speed",
-                                connectyAI: { type: "check", text: "Fast" },
-                                competition1: { type: "warning", text: "Medium" },
-                                competition2: { type: "check", text: "Fast" },
-                                descriptions: {
-                                    connectyAI: "Product A is very fast.",
-                                    competition1: "Product B is moderately fast.",
-                                    competition2: "Product C is very fast."
-                                },
-                                tooltip: "How quickly the product responds"
-                            },
-                            {
-                                name: "Price",
-                                connectyAI: { type: "check", text: "$10/mo" },
-                                competition1: { type: "warning", text: "$25/mo" },
-                                competition2: { type: "close", text: "$50/mo" },
-                                descriptions: {
-                                    connectyAI: "Product A is the most affordable.",
-                                    competition1: "Product B is mid-range pricing.",
-                                    competition2: "Product C is the most expensive."
-                                },
-                                tooltip: "Monthly subscription cost"
-                            }
-                        ],
-                        keyTakeawaysTitle: "The Bottom Line", // Different custom title example
-                        keyTakeaways: [
-                            "Product A offers the best value for money",
-                            "Product C is overpriced compared to alternatives"
-                        ]
+            // Custom data input handlers
+            const previewBtn = document.getElementById('previewBtn');
+            const copyHtmlBtn = document.getElementById('copyHtmlBtn');
+            const exportBtn = document.getElementById('exportBtn');
+            const copyCodeBtn = document.getElementById('copyCodeBtn');
+            const downloadCodeBtn = document.getElementById('downloadCodeBtn');
+            const closeModalBtn = document.getElementById('closeModalBtn');
+            
+            if (previewBtn) {
+                previewBtn.addEventListener('click', previewCustomTable);
+            }
+            if (copyHtmlBtn) {
+                copyHtmlBtn.addEventListener('click', copyHtmlDirectly);
+            }
+            if (exportBtn) {
+                exportBtn.addEventListener('click', showExportModal);
+            }
+            if (copyCodeBtn) {
+                copyCodeBtn.addEventListener('click', copyExportCode);
+            }
+            if (downloadCodeBtn) {
+                downloadCodeBtn.addEventListener('click', downloadExportCode);
+            }
+            if (closeModalBtn) {
+                closeModalBtn.addEventListener('click', closeExportModal);
+            }
+            
+            // Close modal when clicking outside
+            const modal = document.getElementById('exportModal');
+            if (modal) {
+                modal.addEventListener('click', function(e) {
+                    if (e.target === modal) {
+                        closeExportModal();
                     }
-                ]
-            };
+                });
+            }
             
-            // Initialize Demo 2
-            new ComparisonTable(demo2Data, "demo2");
-            
-            // Data for CMS Item 1
-            const cmsItem1Data = {
-                headers: ["MySQL", "PostgreSQL", "MongoDB"],
-                categories: [
-                    {
-                        name: "Database Features",
-                        features: [
-                            {
-                                name: "SQL Support",
-                                connectyAI: { type: "check" },
-                                competition1: { type: "check" },
-                                competition2: { type: "close" },
-                                descriptions: {
-                                    connectyAI: "Full SQL support",
-                                    competition1: "Full SQL support with extensions",
-                                    competition2: "No SQL, uses MongoDB Query Language"
-                                }
-                            }
-                        ],
-                        keyTakeawaysTitle: "Database Selection Guide", // Custom title for CMS item 1
-                        keyTakeaways: [
-                            "SQL databases offer traditional relational data models",
-                            "MongoDB is better for document-oriented data"
-                        ]
-                    }
-                ]
-            };
-            
-            // Data for CMS Item 2
-            const cmsItem2Data = {
-                headers: ["AWS", "Azure", "Google Cloud"],
-                categories: [
-                    {
-                        name: "Cloud Services",
-                        features: [
-                            {
-                                name: "Global Presence",
-                                connectyAI: { type: "check", text: "25+ regions" },
-                                competition1: { type: "check", text: "60+ regions" },
-                                competition2: { type: "warning", text: "20+ regions" },
-                                descriptions: {
-                                    connectyAI: "AWS has a strong global presence",
-                                    competition1: "Azure has the most regions",
-                                    competition2: "Google Cloud has fewer regions but growing"
-                                }
-                            }
-                        ],
-                        // No keyTakeawaysTitle specified - will use default "Key takeaways"
-                        keyTakeaways: [
-                            "Azure leads in geographical coverage",
-                            "All providers continue expanding their global footprint"
-                        ]
-                    }
-                ]
-            };
-            
-            // Initialize CMS tables
-            new ComparisonTable(cmsItem1Data, "cms-item1");
-            new ComparisonTable(cmsItem2Data, "cms-item2");
+            // Initialize textarea with comparison data and show initial preview
+            const dataInput = document.getElementById('dataInput');
+            if (dataInput && window.comparisonData) {
+                dataInput.value = JSON.stringify(window.comparisonData, null, 2);
+                // Show initial preview
+                setTimeout(initializePreview, 100);
+            }
         });
     </script>
+    
 </body>
 </html> 
